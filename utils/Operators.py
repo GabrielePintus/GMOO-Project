@@ -107,7 +107,7 @@ class Mutation:
     
     @staticmethod
     def uniform_mutation(individual, mutation_rate=0.5, low=0, high=1):
-        mutated_individual = [gene + random.uniform(low, high) if random.random() < mutation_rate else gene for gene in individual]
+        mutated_individual = [gene + random.randint(low, high) if random.random() < mutation_rate else gene for gene in individual]
         return mutated_individual
     
     

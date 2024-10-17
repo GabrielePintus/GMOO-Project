@@ -1,4 +1,7 @@
 import random
+import numpy as np
+
+
 
 class ModelAdaptor:
     
@@ -26,10 +29,6 @@ class ModelAdaptor:
         return self.model_class(**casted_hyperparams)
 
 
-
-
-
-
 class Chromosome:
     
     domain : dict = None
@@ -55,8 +54,17 @@ class Chromosome:
         random_chromosome = []
         for key, value in Chromosome.domain.items():
             if isinstance(value, tuple):
-                # This means we are defining the domain as an interval
-                random_chromosome.append(random.randint(value[0], value[1]))
+                p = np.prod(value)
+                print(p)
+                print(type(p))
+                if np.issubdtype(p, np.integer):
+                    # This means we are defining the domain as an interval
+                    random_chromosome.append(random.randint(value[0], value[1]))
+                elif np.issubdtype(p, np.floating):
+                    # This means we are defining the domain as a range of values
+                    random_chromosome.append(random.uniform(value[0], value[1]))
+                else:
+                    raise ValueError('Invalid domain type')
             elif isinstance(value, list):
                 # This means we are defining the domain as a list of possible values
                 # random_chromosome.append(random.choice(value))
@@ -76,13 +84,8 @@ class Chromosome:
     
     def check_bounds(self):
         for i, (key, value) in enumerate(self.domain.items()):
-            if isinstance(value, tuple):
-                # This means we are defining the domain as an interval
-                self.value[i] = max(value[0],min(value[1], self.value[i]))
-            elif isinstance(value, list):
-                # This means we are defining the domain as a list of possible values
-                if self.value[i] not in value:
-                    raise ValueError(f'Value "{self.value[i]}" not in the domain of hyperparameter "{key}"')
+            self.value[i] = max(value[0],min(value[1], self.value[i]))
+                    
         
     def mutate(self, operator):
         self.value = operator(self.value)

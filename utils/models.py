@@ -23,7 +23,13 @@ class MLP(nn.Module):
         
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
-        self.activation = [nn.ReLU(), nn.LeakyReLU(), nn.Tanh()][activation]
+        self.activation = [
+            nn.ReLU(),
+            nn.LeakyReLU(),
+            nn.ELU(),
+            nn.Tanh(),
+            nn.Sigmoid(),
+        ][activation]
         self.dropout = nn.Dropout(dropout)
         
     def forward(self, x):

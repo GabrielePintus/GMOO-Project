@@ -10,10 +10,8 @@ class ModelAdaptor:
         self.params_map = params_map
 
     def build(self, hyperparams):
-        print(hyperparams)
         if isinstance(hyperparams, list):
             hyperparams = {key:h for key, h in zip(self.params_map.keys(), hyperparams)}
-        print(hyperparams)
         
         casted_hyperparams = {}
         for key, value in hyperparams.items():
@@ -55,8 +53,6 @@ class Chromosome:
         for key, value in Chromosome.domain.items():
             if isinstance(value, tuple):
                 p = np.prod(value)
-                print(p)
-                print(type(p))
                 if np.issubdtype(p, np.integer):
                     # This means we are defining the domain as an interval
                     random_chromosome.append(random.randint(value[0], value[1]))

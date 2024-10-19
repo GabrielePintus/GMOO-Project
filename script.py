@@ -14,6 +14,7 @@ import torch.nn as nn
 from mpi4py import MPI
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
+from utils.training import train
 
 
 # Preliminary setup
@@ -71,40 +72,34 @@ custom_mutation = build_custom_mutation({
 def population_initializer(population_size):
     return [Chromosome() for _ in range(population_size)]
 
-def evaluate_fitness(chromosome, train_loader, val_loader, n_epochs=10, clip_grad=1.0):
+
+def evaluate_fitness(chromosome, train_loader, val_loader, n_epochs=10):
     chromosome = chromosome.to_dict()
     model = MLP(input_size=5, output_size=1, **chromosome).to(device)
     
     initial_lr = 1e-2
     final_lr = 1e-4
     gamma = (final_lr / initial_lr) ** (1 / n_epochs)
-    optimizer = torch.optim.Adam(model.parameters(), lr=initial_lr)
-    lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma)
-    criterion = nn.MSELoss()
-    
-    for _ in range(n_epochs):
-        model.train()
-        for x, y in train_loader:
-            x, y = x.to(device), y.to(device)
-            optimizer.zero_grad()
-            y_pred = model(x)
-            loss = criterion(y_pred, y)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
-            loss.backward()
-            optimizer.step()
 
-        lr_scheduler.step()
-        
-        model.eval()
-        val_loss = 0
-        with torch.no_grad():
-            for x, y in val_loader:
-                x, y = x.to(device), y.to(device)
-                y_pred = model(x)
-                val_loss += criterion(y_pred, y)
-        val_loss /= len(val_loader)
-    
-    return -val_loss.item()
+    clip_grad = 1.0
+
+    _, val_losses, _ = train(
+        model               = model,
+        device              = device,
+        train_loader        = train_loader,
+        val_loader          = val_loader,
+        n_epochs            = n_epochs,
+        optimizer           = torch.optim.SGD,
+        optimizer_params    = {'lr': initial_lr},
+        criterion           = nn.MSELoss(),
+        lr_scheduler        = torch.optim.lr_scheduler.ExponentialLR,
+        lr_scheduler_params = {'gamma': gamma},
+        clip_grad           = clip_grad
+    )
+
+    return -val_losses[-1]
+
+
 
 def fitness_evaluator(chromosomes, data):
     train_loader, val_loader = data

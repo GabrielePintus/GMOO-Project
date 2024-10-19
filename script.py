@@ -15,6 +15,7 @@ from mpi4py import MPI
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset
 from utils.training import train
+from threading import Thread, Semaphore
 
 
 # Preliminary setup
@@ -73,7 +74,13 @@ def population_initializer(population_size):
     return [Chromosome() for _ in range(population_size)]
 
 
-def evaluate_fitness(chromosome, train_loader, val_loader, n_epochs=10):
+def evaluate_fitness(
+    chromosome,
+    train_loader,
+    val_loader,
+    n_epochs  = 10,
+    device    = torch.device('cpu')
+):
     chromosome = chromosome.to_dict()
     model = MLP(input_size=5, output_size=1, **chromosome).to(device)
     
@@ -99,6 +106,28 @@ def evaluate_fitness(chromosome, train_loader, val_loader, n_epochs=10):
 
     return -val_losses[-1]
 
+def parallel_fitness_evaluator(chromosomes, data, devices):
+    train_loader, val_loader = data
+    threads = []
+    fitness_values = [None] * len(chromosomes)
+    device_semaphores = {device: Semaphore(1) for device in devices}
+
+    for i, chromosome in enumerate(chromosomes):
+        device = devices[i % len(devices)]
+        def evaluate_in_thread(i, chromosome, device):
+            with device_semaphores[device]:  # Ensure only one thread uses this device at a time
+                fitness_values[i] = evaluate_fitness(chromosome, train_loader, val_loader, device=device)
+        
+        thread = Thread(
+            target=evaluate_in_thread,
+            args=(i, chromosome, device)
+        )
+        thread.start()
+        threads.append(thread)
+    for thread in threads:
+        thread.join()
+
+    return fitness_values
 
 
 def fitness_evaluator(chromosomes, data):
@@ -107,9 +136,12 @@ def fitness_evaluator(chromosomes, data):
 
 
 if __name__ == '__main__':
+    # Cuda devices
+    devices = [torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())]
+
     ga = GeneticAlgorithm(
         population_initializer  = population_initializer,
-        fitness_evaluator       = fitness_evaluator,
+        fitness_evaluator       = lambda pop, data : parallel_fitness_evaluator(pop, data, devices),
         selection_operator      = lambda pop, fitness : Selection.tournament_selection(pop , fitness, 2),
         crossover_pairing       = Crossover.half_pairs,
         crossover_operator      = Crossover.uniform_crossover,

@@ -30,6 +30,8 @@ import seaborn as sns
 # Parallelism and Distributed Computing
 # from mpi4py import MPI
 # from threading import Thread, Semaphore
+NUM_NODES = 1
+NUM_GPUS = 2
 
 # Preliminary setup
 SEED = 42
@@ -140,7 +142,11 @@ def evaluate_fitness(
         callbacks = [
             model_summary,
             device_monitor,
-        ]
+        ],
+        accelerator='gpu',
+        devices=NUM_GPUS,
+        num_nodes=NUM_NODES,
+        strategy='ddp',
     )
 
     # Train the model

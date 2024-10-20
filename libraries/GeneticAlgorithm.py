@@ -56,10 +56,10 @@ class GeneticAlgorithm:
 
             # Evaluate fitness
             fitness = self.fitness_evaluator(
-                population,
-                data,
-                10,
-                loggers
+                chromosomes = population,
+                data        = data,
+                n_epochs    = 10,
+                loggers     = loggers
             )
             fitness_history.append(fitness)
             

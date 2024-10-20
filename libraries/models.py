@@ -44,6 +44,8 @@ class MLP(L.LightningModule):
         }
         self.train_metrics = torchmetrics.MetricCollection(self.metrics, prefix='train_')
         self.val_metrics = torchmetrics.MetricCollection(self.metrics, prefix='val_')
+        # Save the hyperparameters
+        self.save_hyperparameters()
 
     def forward(self, x):
         return self.model(x)

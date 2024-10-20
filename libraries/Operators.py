@@ -143,6 +143,7 @@ def build_custom_mutation(map):
         length = len(individual)
         mutated_individual = [None] * length
         for _slice, mutation in map.items():
+            _slice = slice(*_slice)
             mutated_individual[_slice] = mutation(individual[_slice])
         return mutated_individual
     return custom_mutation

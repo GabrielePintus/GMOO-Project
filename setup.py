@@ -114,6 +114,21 @@ def fitness_evaluator(
     train_loader, val_loader = data
     return [evaluate_fitness(chromosome, train_loader, val_loader, n_epochs, logger) for logger, chromosome in zip(loggers, chromosomes)]
 
+
+def fitness_evaluator_multithread(
+    chromosomes,
+    data,
+    n_epochs  = 10,
+    loggers   = None,
+    n_threads = 4
+):
+    if loggers is None:
+        loggers = [None] * len(chromosomes)
+    train_loader, val_loader = data
+    return [evaluate_fitness(chromosome, train_loader, val_loader, n_epochs, logger) for logger, chromosome in zip(loggers, chromosomes)]
+
+
+
 def evaluate_fitness(
     chromosome,
     train_loader,

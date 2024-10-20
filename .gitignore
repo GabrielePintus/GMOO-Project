@@ -165,4 +165,5 @@ cython_debug/
 lightning_logs/
 wandb/
 GMOOP/
+checkpoints/
 

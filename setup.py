@@ -30,8 +30,8 @@ import seaborn as sns
 # Parallelism and Distributed Computing
 # from mpi4py import MPI
 # from threading import Thread, Semaphore
-# NUM_NODES = 1
-# NUM_GPUS = 1
+NUM_NODES = 1
+NUM_GPUS = 1
 
 # Preliminary setup
 SEED = 42
@@ -133,7 +133,6 @@ def evaluate_fitness(
         dropout     = chromosome['dropout'],
     )
 
-
     # Log Hyperparameters
     
     # Define useful callbacks
@@ -149,9 +148,9 @@ def evaluate_fitness(
             device_monitor,
         ],
         accelerator='gpu',
-        # devices=NUM_GPUS,
-        # num_nodes=NUM_NODES,
-        # strategy='ddp',
+        devices=NUM_GPUS,
+        num_nodes=NUM_NODES,
+        strategy='ddp',
     )
 
     # Train the model
@@ -162,5 +161,5 @@ def evaluate_fitness(
 
     
     # Return last validation loss
-    return -model.val_metrics['mse'].compute()
+    return -trainer.callback_metrics['val_mse'].item()
 

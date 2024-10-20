@@ -4,7 +4,7 @@ from torch import nn
 import torchmetrics
 import lightning as L
 from libraries.Types import Chromosome
-from torch.optim.lr_scheduler import StepLR
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
 from torch.functional import F
 import numpy as np
 
@@ -51,8 +51,13 @@ class MLP(L.LightningModule):
         return self.model(x)
     
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-2)
-        return optimizer
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-1)
+        lr_scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.1)
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': lr_scheduler,
+            'monitor': 'val_mse'
+        }
 
     def training_step(self, batch, batch_idx):
         # training_step defines the train loop.

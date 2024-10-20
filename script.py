@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     # ES params
     pop_size = 4
-    max_generations = 2
+    max_generations = 20
     total_fitness_evaluations = pop_size * max_generations
 
     # Loggers

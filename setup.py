@@ -14,7 +14,7 @@ import lightning as L
 # Logging
 import wandb
 from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.callbacks import ModelSummary, DeviceStatsMonitor, ModelCheckpoint, LearningRateMonitor
+from lightning.pytorch.callbacks import ModelSummary, DeviceStatsMonitor, ModelCheckpoint, LearningRateMonitor, EarlyStopping, StochasticWeightAveraging
 
 # Custom modules
 from libraries.Types import Chromosome
@@ -132,13 +132,26 @@ def evaluate_fitness(
         activation  = activation,
         dropout     = chromosome['dropout'],
     )
-
-    # Log Hyperparameters
     
     # Define useful callbacks
     model_summary = ModelSummary(max_depth=-1)
     device_monitor = DeviceStatsMonitor()
     lr_monitor = LearningRateMonitor(logging_interval='epoch')
+    model_checkpoint = ModelCheckpoint(
+        monitor='val_mse',
+        mode='min',
+        save_top_k=1,
+        dirpath='checkpoints/',
+        filename='best-model-{epoch:02d}-{val_mse:.2f}',
+        verbose=True,
+    )
+    early_stopping = EarlyStopping(
+        monitor='val_mse',
+        mode='min',
+        patience=10,
+        verbose=True,
+    )
+    swa = StochasticWeightAveraging(swa_lrs=1e-2)
 
     # Set up the trainer
     trainer = L.Trainer(
@@ -152,6 +165,9 @@ def evaluate_fitness(
             model_summary,
             device_monitor,
             lr_monitor,
+            model_checkpoint,
+            early_stopping,
+            swa
         ],
         # Dsitributed computing
         accelerator='gpu',

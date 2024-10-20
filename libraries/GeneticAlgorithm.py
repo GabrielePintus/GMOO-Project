@@ -14,7 +14,6 @@ class GeneticAlgorithm:
         crossover_operator,
         mutation_operator,
         termination_condition,
-        neptune_api_token = None
     ):
         self.population_initializer = population_initializer
         self.fitness_evaluator = fitness_evaluator
@@ -58,7 +57,7 @@ class GeneticAlgorithm:
             fitness = self.fitness_evaluator(
                 chromosomes = population,
                 data        = data,
-                n_epochs    = 10,
+                n_epochs    = 150,
                 loggers     = loggers
             )
             fitness_history.append(fitness)

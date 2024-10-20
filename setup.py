@@ -14,7 +14,7 @@ import lightning as L
 # Logging
 import wandb
 from lightning.pytorch.loggers import WandbLogger
-from lightning.pytorch.callbacks import ModelSummary, DeviceStatsMonitor, ModelCheckpoint
+from lightning.pytorch.callbacks import ModelSummary, DeviceStatsMonitor, ModelCheckpoint, LearningRateMonitor
 
 # Custom modules
 from libraries.Types import Chromosome
@@ -138,15 +138,22 @@ def evaluate_fitness(
     # Define useful callbacks
     model_summary = ModelSummary(max_depth=-1)
     device_monitor = DeviceStatsMonitor()
+    lr_monitor = LearningRateMonitor(logging_interval='epoch')
 
     # Set up the trainer
     trainer = L.Trainer(
         max_epochs = n_epochs,
         logger = logger,
+        # Gradient Clipping
+        gradient_clip_val=1.0,
+        gradient_clip_algorithm='norm',
+        # Callbacks
         callbacks = [
             model_summary,
             device_monitor,
+            lr_monitor,
         ],
+        # Dsitributed computing
         accelerator='gpu',
         devices=NUM_GPUS,
         num_nodes=NUM_NODES,

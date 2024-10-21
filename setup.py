@@ -31,9 +31,7 @@ import seaborn as sns
 # from mpi4py import MPI
 from threading import Thread, Semaphore
 NUM_NODES = 1
-GPUS_PER_NODE = 2
-NUM_DEVICES = 1
-STRATEGY = 'ddp_spawn'
+STRATEGY = 'ddp'
 
 # Preliminary setup
 SEED = 42
@@ -160,7 +158,15 @@ def evaluate_fitness_thread(
     results,
     index
 ):
-    results[index] = evaluate_fitness(chromosome, train_loader, val_loader, n_epochs, logger)
+    results[index] = evaluate_fitness(
+        chromosome,
+        train_loader,
+        val_loader,
+        n_epochs,
+        logger,
+        # Specify single GPU device
+        devices = [index % torch.cuda.device_count()]
+    )
     semaphore.release()
 
 
@@ -169,7 +175,8 @@ def evaluate_fitness(
     train_loader,
     val_loader,
     n_epochs  = 10,
-    logger    = None
+    logger    = None,
+    devices   = -1
 ):
     chromosome = chromosome.to_dict()
 
@@ -221,9 +228,8 @@ def evaluate_fitness(
         ],
         # Dsitributed computing
         accelerator     = 'gpu',
-        devices         = NUM_DEVICES,
+        devices         = devices,
         num_nodes       = NUM_NODES,
-        gpus_per_node   = GPUS_PER_NODE,
         strategy        = STRATEGY,
     )
 

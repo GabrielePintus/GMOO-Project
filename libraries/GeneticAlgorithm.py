@@ -28,7 +28,8 @@ class GeneticAlgorithm:
         data,
         population_size,
         max_generations,
-        run_tags = None
+        run_tags = None,
+        n_epochs = 10
     ):
         # Initialize population
         population = self.population_initializer(population_size)
@@ -57,7 +58,7 @@ class GeneticAlgorithm:
             fitness = self.fitness_evaluator(
                 chromosomes = population,
                 data        = data,
-                n_epochs    = 150,
+                n_epochs    = n_epochs,
                 loggers     = loggers
             )
             fitness_history.append(fitness)

@@ -88,11 +88,6 @@ def population_initializer(population_size):
     return [Chromosome() for _ in range(population_size)]
 
 # Mutation operator
-# custom_mutation = build_custom_mutation({
-#     slice(0, 1) : lambda x: Mutation.uniform_mutation(x, 1, -4, 4),
-#     slice(1, 2) : lambda x: Mutation.uniform_mutation(x, 1, -2, 2),
-#     slice(2, 3) : lambda x: Mutation.gaussian_mutation(x, 1, 0, 0.15),
-# })
 custom_mutation = build_custom_mutation({
     (0, 1) : lambda x: Mutation.uniform_mutation(x, 1, -4, 4),
     (1, 2) : lambda x: Mutation.uniform_mutation(x, 1, -2, 2),

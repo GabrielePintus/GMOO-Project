@@ -11,13 +11,6 @@ import numpy as np
 
 ACTIVATIONS = (nn.ReLU(), nn.LeakyReLU(), nn.ELU(), nn.Tanh(), nn.Sigmoid())
 
-
-class RandomForest(RandomForestClassifier):
-    def __init__(self, **kwargs):
-        # The last position is the criterion
-        # Map 0 to 'gini' and 1 to 'entropy'
-        kwargs['criterion'] = ['gini', 'entropy'][kwargs['criterion']]
-        super().__init__(**kwargs)
         
 
 class MLP(L.LightningModule):
@@ -26,16 +19,26 @@ class MLP(L.LightningModule):
         input_size,
         hidden_size, 
         output_size,
+        n_layers,
         activation,
         dropout
     ):
         super().__init__()
-        self.model = nn.Sequential(
+        
+        # Build the model
+        self.layers = nn.ModuleList(
             nn.Linear(input_size, hidden_size),
             activation,
-            nn.Dropout(dropout),
-            nn.Linear(hidden_size, output_size)
+            nn.Dropout(dropout)
         )
+        for _ in range(n_layers - 1):
+            self.layers.extend([
+                nn.Linear(hidden_size, hidden_size),
+                activation,
+                nn.Dropout(dropout)
+            ])
+        self.layers.append(nn.Linear(hidden_size, output_size))
+
         # Metrics
         self.metrics = {
             'mse': torchmetrics.MeanSquaredError(),
@@ -51,7 +54,7 @@ class MLP(L.LightningModule):
         return self.model(x)
     
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-1)
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-2)
         lr_scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.1)
         return {
             'optimizer': optimizer,

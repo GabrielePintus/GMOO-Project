@@ -29,9 +29,11 @@ import seaborn as sns
 
 # Parallelism and Distributed Computing
 # from mpi4py import MPI
-# from threading import Thread, Semaphore
+from threading import Thread, Semaphore
 NUM_NODES = 1
-NUM_GPUS = 1
+GPUS_PER_NODE = 2
+NUM_DEVICES = 1
+STRATEGY = 'ddp_spawn'
 
 # Preliminary setup
 SEED = 42
@@ -125,8 +127,41 @@ def fitness_evaluator_multithread(
     if loggers is None:
         loggers = [None] * len(chromosomes)
     train_loader, val_loader = data
-    return [evaluate_fitness(chromosome, train_loader, val_loader, n_epochs, logger) for logger, chromosome in zip(loggers, chromosomes)]
+    # Get GPU devices
+    devices = torch.cuda.device_count()
+    n_threads = min(n_threads, devices)
+    # Create a semaphore to limit the number of threads
+    semaphore = Semaphore(n_threads)
+    # Create a list to store the results
+    results = [None] * len(chromosomes)
+    # Create a list to store the threads
+    threads = []
+    for i, (chromosome, logger) in enumerate(zip(chromosomes, loggers)):
+        semaphore.acquire()
+        thread = Thread(
+            target=evaluate_fitness_thread,
+            args=(chromosome, train_loader, val_loader, n_epochs, logger, semaphore, results, i)
+        )
+        threads.append(thread)
+        thread.start()
+    # Wait for all threads to finish
+    for thread in threads:
+        thread.join()
+    return results
 
+
+def evaluate_fitness_thread(
+    chromosome,
+    train_loader,
+    val_loader,
+    n_epochs,
+    logger,
+    semaphore,
+    results,
+    index
+):
+    results[index] = evaluate_fitness(chromosome, train_loader, val_loader, n_epochs, logger)
+    semaphore.release()
 
 
 def evaluate_fitness(
@@ -185,10 +220,11 @@ def evaluate_fitness(
             swa
         ],
         # Dsitributed computing
-        accelerator='gpu',
-        devices=NUM_GPUS,
-        num_nodes=NUM_NODES,
-        strategy='ddp',
+        accelerator     = 'gpu',
+        devices         = NUM_DEVICES,
+        num_nodes       = NUM_NODES,
+        gpus_per_node   = GPUS_PER_NODE,
+        strategy        = STRATEGY,
     )
 
     # Train the model

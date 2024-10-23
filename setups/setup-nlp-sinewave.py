@@ -11,6 +11,7 @@ Chromosome.set_domain({
     'activation': list(range(len(ACTIVATIONS))),
     'dropout': (0, 0.5)
 })
+transition_matrix = np.loadtxt('setups/transition_probabilities.csv', delimiter=',')
 
 # Selection operator
 selection_operator = lambda population, fitness_values: Selection.tournament_selection(population, fitness_values, 3)
@@ -22,7 +23,8 @@ crossover_operator = Crossover.two_point_crossover
 mutation_operator = build_custom_mutation({
     (0, 1)  : lambda x: Mutation.uniform_mutation(x, 1, -1, 1),
     (1, 2)  : lambda x: Mutation.uniform_mutation(x, 1, -8, 8),
-    (2, 3)  : lambda x: Mutation.uniform_mutation(x, 1, -2, 2),
+    # (2, 3)  : lambda x: Mutation.uniform_mutation(x, 1, -2, 2),
+    (2, 3)  : lambda x: Mutation.transition_mutation(x, 1, transition_matrix, list(range(len(ACTIVATIONS))) ),
     (3, 4)  : lambda x: Mutation.gaussian_mutation(x, 1, 0, 0.15)
 })
 # Termination condition

@@ -9,7 +9,7 @@ from torch.functional import F
 import numpy as np
 
 
-ACTIVATIONS = [nn.ReLU(), nn.LeakyReLU(), nn.ELU(), nn.Tanh(), nn.Sigmoid()]
+ACTIVATIONS = [nn.ReLU(), nn.LeakyReLU(), nn.ELU(), nn.GELU(), nn.Tanh(), nn.Sigmoid()]
 
         
 
@@ -50,8 +50,6 @@ class MLP(L.LightningModule):
         self.val_metrics = torchmetrics.MetricCollection(self.metrics, prefix='val_')
         # Save the hyperparameters
         self.save_hyperparameters()
-        # Change the activation function value in the log
-        self.hparams.activation = activation.__class__.__name__
 
     def forward(self, x):
         return self.model(x)

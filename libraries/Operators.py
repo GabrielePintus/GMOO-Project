@@ -110,6 +110,18 @@ class Mutation:
         mutated_individual = [gene + random.randint(low, high) if random.random() < mutation_rate else gene for gene in individual]
         return mutated_individual
     
+    @staticmethod
+    def transition_mutation(individual, mutation_rate=0.5, transition_matrix=None, outcomes=None):
+        assert transition_matrix is not None, "transition_matrix must be provided"
+        assert outcomes is not None, "outcomes must be provided"
+        for i, gene in enumerate(individual):
+            probabilities = transition_matrix[gene]
+            print('outcomes:', outcomes)
+            print('probabilities:', probabilities)
+            sample = random.choices(outcomes, weights=probabilities, k=1)
+            individual[i] = sample[0] if random.random() < mutation_rate else gene
+        return individual
+    
     
 
 def build_custom_crossover(map):

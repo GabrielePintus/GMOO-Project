@@ -4,12 +4,12 @@ from torch import nn
 import torchmetrics
 import lightning as L
 from libraries.Types import Chromosome
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
+from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, ExponentialLR
 from torch.functional import F
 import numpy as np
 
 
-ACTIVATIONS = (nn.ReLU(), nn.LeakyReLU(), nn.ELU(), nn.Tanh(), nn.Sigmoid())
+ACTIVATIONS = [nn.ReLU(), nn.LeakyReLU(), nn.ELU(), nn.Tanh(), nn.Sigmoid()]
 
         
 
@@ -26,11 +26,11 @@ class MLP(L.LightningModule):
         super().__init__()
         
         # Build the model
-        self.layers = nn.ModuleList(
+        self.layers = [
             nn.Linear(input_size, hidden_size),
             activation,
             nn.Dropout(dropout)
-        )
+        ]
         for _ in range(n_layers - 1):
             self.layers.extend([
                 nn.Linear(hidden_size, hidden_size),
@@ -38,6 +38,7 @@ class MLP(L.LightningModule):
                 nn.Dropout(dropout)
             ])
         self.layers.append(nn.Linear(hidden_size, output_size))
+        self.model = nn.Sequential(*self.layers)
 
         # Metrics
         self.metrics = {
@@ -49,13 +50,19 @@ class MLP(L.LightningModule):
         self.val_metrics = torchmetrics.MetricCollection(self.metrics, prefix='val_')
         # Save the hyperparameters
         self.save_hyperparameters()
+        # Change the activation function value in the log
+        self.hparams.activation = activation.__class__.__name__
 
     def forward(self, x):
         return self.model(x)
     
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-2)
-        lr_scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.1)
+        # lr_scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.1)
+        initial_lr = 1e-2
+        final_lr = 1e-4
+        gamma = (final_lr / initial_lr) ** (1 / self.trainer.max_epochs)
+        lr_scheduler = ExponentialLR(optimizer, gamma=gamma)
         return {
             'optimizer': optimizer,
             'lr_scheduler': lr_scheduler,

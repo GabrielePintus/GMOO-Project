@@ -20,7 +20,7 @@ from lightning.pytorch.callbacks import ModelSummary, DeviceStatsMonitor, ModelC
 from libraries.Types import Chromosome
 from libraries.Operators import Crossover, Mutation, Selection, build_custom_mutation
 from libraries.models import ACTIVATIONS, MLP
-from libraries.GeneticAlgorithm import GeneticAlgorithm
+# from libraries.GeneticAlgorithm import GeneticAlgorithm
 
 # Visualization
 import matplotlib
@@ -59,8 +59,6 @@ def load_data(path):
     X_test = scaler.transform(X_test)
 
     return X_train, y_train, X_test, y_test
-    
-    
 
 
 def build_data_loaders(batch_size, X_train, y_train, X_val, y_val):
@@ -99,15 +97,16 @@ custom_mutation = build_custom_mutation({
 #       Training
 #
 def fitness_evaluator(
+    evaluate_individual,
     chromosomes,
     data,
     n_epochs  = 10,
-    loggers   = None
+    loggers   = None,
 ):
     if loggers is None:
         loggers = [None] * len(chromosomes)
     train_loader, val_loader = data
-    return [evaluate_fitness(chromosome, train_loader, val_loader, n_epochs, logger) for logger, chromosome in zip(loggers, chromosomes)]
+    return [evaluate_individual(chromosome, train_loader, val_loader, n_epochs, logger) for logger, chromosome in zip(loggers, chromosomes)]
 
 
 def fitness_evaluator_multithread(
@@ -170,8 +169,7 @@ def evaluate_fitness(
     train_loader,
     val_loader,
     n_epochs  = 10,
-    logger    = None,
-    devices   = -1
+    logger    = None
 ):
     chromosome = chromosome.to_dict()
 
@@ -181,6 +179,7 @@ def evaluate_fitness(
         input_size  = train_loader.dataset.tensors[0].shape[1],
         hidden_size = chromosome['hidden_size'],
         output_size = 1,
+        n_layers    = chromosome['n_layers'],
         activation  = activation,
         dropout     = chromosome['dropout'],
     )
@@ -221,11 +220,10 @@ def evaluate_fitness(
             early_stopping,
             swa
         ],
-        # Dsitributed computing
+        # Distributed computing
         accelerator     = 'gpu',
-        devices         = devices,
-        num_nodes       = NUM_NODES,
-        strategy        = STRATEGY,
+        # num_nodes       = NUM_NODES,
+        # strategy        = STRATEGY,
     )
 
     # Train the model

@@ -74,9 +74,9 @@ Activation Function
 
 This way, we encode the differences between activation functions in the distance we define.
 The distance is defined as the number of hops between two nodes in the tree.
-$$
+```math
 d_{\text{hops}}(a, b) = \text{number of hops between a and b}
-$$
+```
 An alternative could be to define this distance as the logarithm of the number of hops. This way the distance between two nodes is more "uniformly" distributed, allowing for more exploration.
 
 Example: probability of mutation from ReLU to every other activation function

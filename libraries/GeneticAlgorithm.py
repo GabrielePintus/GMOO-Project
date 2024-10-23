@@ -1,6 +1,5 @@
 from tqdm.auto import tqdm
 from libraries.Types import Chromosome
-from setup import WandbLogger
 
 
 class GeneticAlgorithm:
@@ -8,7 +7,7 @@ class GeneticAlgorithm:
     def __init__(
         self,
         population_initializer,
-        fitness_evaluator,
+        evaluate_population,
         selection_operator,
         crossover_pairing,
         crossover_operator,
@@ -16,7 +15,7 @@ class GeneticAlgorithm:
         termination_condition,
     ):
         self.population_initializer = population_initializer
-        self.fitness_evaluator = fitness_evaluator
+        self.evaluate_population = evaluate_population
         self.selection_operator = selection_operator
         self.crossover_pairing = crossover_pairing
         self.crossover_operator = crossover_operator
@@ -29,7 +28,8 @@ class GeneticAlgorithm:
         population_size,
         max_generations,
         run_tags = None,
-        n_epochs = 10
+        n_epochs = 10,
+        Logger = None
     ):
         # Initialize population
         population = self.population_initializer(population_size)
@@ -47,7 +47,7 @@ class GeneticAlgorithm:
 
             # Create loggers
             loggers = [
-                WandbLogger(
+                Logger(
                     project="GMOOP",
                     name=f"fitness-{generation+1}-{i+1}",
                     tags=run_tags
@@ -55,7 +55,7 @@ class GeneticAlgorithm:
             ]
 
             # Evaluate fitness
-            fitness = self.fitness_evaluator(
+            fitness = self.evaluate_population(
                 chromosomes = population,
                 data        = data,
                 n_epochs    = n_epochs,

@@ -10,38 +10,46 @@ path    = entity + "/" + project
 
 ACTIVATIONS = ['ReLU', 'LeakyReLU', 'ELU', 'GELU', 'Tanh', 'Sigmoid']
 class Filter:
-    
-    MLP_SINEWAVE = {
+    MLP_SINEWAVE_GA = {
         "tags": {
-            "$all": ["sinewave", "mlp"],
-            "$nin": ["BO"]
+            "$all": ["sinewave", "GA", "plateau", "MLP"],
         }
     }
     MLP_SINEWAVE_BO = {
         "tags": {
-            "$all": ["sinewave", "mlp", "BO"],
-        }
-    }
-    MLP_MNIST = {
-        "tags": {
-            "$all": ["mnist", "mlp", "large_batch"],
-            "$nin": ["BO", "plateau"]
+            "$all": ["sinewave", "BO", "plateau", "MLP"],
         }
     }
 
 
-def get_metrics(df, run, generation):
-    df[run.name] = run.config
-    # Drop actiavtion key
-    df[run.name].pop('activation')
-    df[run.name]['generation'] = generation
-    df[run.name]['val_mse'] = run.summary['val_mse']
-    df[run.name]['val_mae'] = run.summary['val_mae']
-    df[run.name]['val_R2'] = run.summary['val_R2']
-    # df[run.name]['test_mse'] = run.summary['test_mse']
-    # df[run.name]['test_mae'] = run.summary['test_mae']
-    # df[run.name]['test_R2'] = run.summary['test_R2']
-    df[run.name]['activation_function'] = ACTIVATIONS[df[run.name]['activation_function']]
+
+
+def runs_to_df_ga(runs):
+    df = dict()
+    for run in runs:
+        df[run.name] = run.config
+        df[run.name].pop('activation')
+        generation = int(run.name.split('-')[1])
+        df[run.name]['generation'] = generation
+        df[run.name]['val_mse'] = run.summary['val_mse']
+        df[run.name]['val_mae'] = run.summary['val_mae']
+        df[run.name]['val_R2'] = run.summary['val_R2']
+        df[run.name]['activation_function'] = ACTIVATIONS[df[run.name]['activation_function']]
+    df = pd.DataFrame.from_dict(df, orient='index')
+    return df
+
+def runs_to_df_bo(runs):
+    df = dict()
+    for run in runs:
+        df[run.name] = run.config
+        df[run.name].pop('activation')
+        generation = int(run.name.split('-')[-1])
+        df[run.name]['generation'] = ((generation-1)//5)+1
+        df[run.name]['val_mse'] = run.summary['val_mse']
+        df[run.name]['val_mae'] = run.summary['val_mae']
+        df[run.name]['val_R2'] = run.summary['val_R2']
+        df[run.name]['activation_function'] = ACTIVATIONS[df[run.name]['activation_function']]
+    df = pd.DataFrame.from_dict(df, orient='index')
     return df
 
 

@@ -5,5 +5,5 @@ python3 script.py \
     --max_generations 20 \
     --batch_size 128 \
     --n_epochs 100 \
-    --tags sinewave mlp
+    --tags sinewave GA plateau MLP
 

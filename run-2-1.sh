@@ -1,9 +1,9 @@
-python3 script.py \
-    --setup_file setups/setup-mnist-mlp.py \
+python3 script-BO.py \
+    --setup_file setups/setup-mnist-mlp-BO.py \
     --dataset datasets/MNIST \
-    --pop_size 5 \
-    --max_generations 20 \
-    --batch_size 2048 \
+    --warmup_steps 10 \
+    --optimization_steps 90 \
+    --batch_size 1024 \
     --n_epochs 100 \
-    --tags mnist mlp large_batch
+    --tags mnist GA plateau MLP
 

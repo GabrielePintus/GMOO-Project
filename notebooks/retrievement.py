@@ -20,6 +20,16 @@ class Filter:
             "$all": ["sinewave", "BO", "plateau", "MLP"],
         }
     }
+    MLP_MNIST_GA = {
+        "tags": {
+            "$all": ["MNIST", "GA", "plateau", "MLP"],
+        }
+    }
+    MLP_MNIST_BO = {
+        "tags": {
+            "$all": ["MNIST", "BO", "plateau", "MLP"],
+        }
+    }
 
 
 

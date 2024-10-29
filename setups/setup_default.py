@@ -55,7 +55,6 @@ def build_data_loaders(batch_size, D_train, D_val, D_test):
     X_train, y_train = torch.tensor(D_train[0], dtype=torch.float32), torch.tensor(D_train[1], dtype=torch.float32)
     X_val, y_val = torch.tensor(D_val[0], dtype=torch.float32), torch.tensor(D_val[1], dtype=torch.float32)
     X_test, y_test = torch.tensor(D_test[0], dtype=torch.float32), torch.tensor(D_test[1], dtype=torch.float32)
-
     # Create PyTorch data loaders
     train_data = TensorDataset(X_train, y_train)
     val_data = TensorDataset(X_val, y_val)
@@ -99,6 +98,7 @@ def evaluate_individual(
     chromosome,
     train_loader,
     val_loader,
+    test_loader,
     n_epochs  = 10,
     logger    = None
 ):
@@ -159,13 +159,16 @@ def evaluate_individual(
 
     # Train the model
     trainer.fit(model, train_loader, val_loader)
+    last_val_loss = trainer.callback_metrics['val_mse'].item()
+
+    # Test the model
+    trainer.test(ckpt_path="last", dataloaders=test_loader)
 
     # Finish the logger
     wandb.finish()
 
-    
     # Return last validation loss
-    return -trainer.callback_metrics['val_mse'].item()
+    return -last_val_loss
 
 # Function that evaluates the fitness of each individual in the population
 def evaluate_population(
@@ -176,5 +179,7 @@ def evaluate_population(
 ):
     if loggers is None:
         loggers = [None] * len(chromosomes)
-    train_loader, val_loader = data
-    return [evaluate_individual(chromosome, train_loader, val_loader, n_epochs, logger) for logger, chromosome in zip(loggers, chromosomes)]
+    train_loader, val_loader, test_loader = data
+    return [evaluate_individual(chromosome, train_loader, val_loader, test_loader, n_epochs, logger) for logger, chromosome in zip(loggers, chromosomes)]
+
+

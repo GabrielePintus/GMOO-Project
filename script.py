@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # Load the data
     batch_size                            = args.batch_size
     D_train, D_val, D_test                = setup_module.load_data(args.dataset)
-    train_loader, val_loader, _           = setup_module.build_data_loaders(batch_size, D_train, D_val, D_test)
+    train_loader, val_loader, test_loader = setup_module.build_data_loaders(batch_size, D_train, D_val, D_test)
 
     # ES params
     pop_size                    = args.pop_size
@@ -56,10 +56,26 @@ if __name__ == '__main__':
 
     # Run the algorithm
     ga.run(
-        (train_loader, val_loader),
+        (train_loader, val_loader, test_loader),
         pop_size,
         max_generations,
         run_tags=args.tags,
         n_epochs=args.n_epochs,
         Logger = setup_module.Logger
     )
+
+    # Evaluate the best chromosome
+    best_chromosome = ga.best_chromosome.to_dict()
+    best_model = setup_module.MLP(
+        input_size  = train_loader.dataset.tensors[0].shape[1],
+        output_size = 1,
+        n_layers    = best_chromosome['n_layers'],
+        hidden_size = best_chromosome['hidden_size'],
+        activation  = setup_module.ACTIVATIONS[best_chromosome['activation']],
+        dropout     = best_chromosome['dropout']
+    )
+    
+
+
+
+

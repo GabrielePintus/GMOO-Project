@@ -21,9 +21,8 @@ crossover_pairing = Crossover.half_pairs
 crossover_operator = Crossover.two_point_crossover
 # Mutation operator
 mutation_operator = build_custom_mutation({
-    (0, 1)  : lambda x: Mutation.uniform_mutation(x, 1, -1, 1),
-    (1, 2)  : lambda x: Mutation.uniform_mutation(x, 1, -8, 8),
-    # (2, 3)  : lambda x: Mutation.uniform_mutation(x, 1, -2, 2),
+    (0, 1)  : lambda x: Mutation.uniform_mutation(x, 1, -2, 2),
+    (1, 2)  : lambda x: Mutation.uniform_mutation(x, 1, -16, 16),
     (2, 3)  : lambda x: Mutation.transition_mutation(x, 1, transition_matrix, list(range(len(ACTIVATIONS))) ),
     (3, 4)  : lambda x: Mutation.gaussian_mutation(x, 1, 0, 0.15)
 })

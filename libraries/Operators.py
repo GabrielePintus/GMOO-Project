@@ -85,7 +85,10 @@ class Crossover:
     @staticmethod
     def half_pairs(population):
         half = len(population) // 2
-        return [(population[i], population[i+half]) for i in range(half)]
+        pairs = [(population[i], population[i+half]) for i in range(half)]
+        if len(population) % 2 != 0:
+            pairs.append((population[-1], population[0]))
+        return pairs
 
 
 class Mutation:

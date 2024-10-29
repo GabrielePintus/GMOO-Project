@@ -48,6 +48,7 @@ class MLP(L.LightningModule):
         }
         self.train_metrics = torchmetrics.MetricCollection(self.metrics, prefix='train_')
         self.val_metrics = torchmetrics.MetricCollection(self.metrics, prefix='val_')
+        self.test_metrics = torchmetrics.MetricCollection(self.metrics, prefix='test_')
         # Save the hyperparameters
         self.save_hyperparameters()
 
@@ -56,11 +57,11 @@ class MLP(L.LightningModule):
     
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-2)
-        # lr_scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.1)
-        initial_lr = 1e-2
-        final_lr = 1e-4
-        gamma = (final_lr / initial_lr) ** (1 / self.trainer.max_epochs)
-        lr_scheduler = ExponentialLR(optimizer, gamma=gamma)
+        lr_scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.1)
+        # initial_lr = 1e-2
+        # final_lr = 1e-4
+        # gamma = (final_lr / initial_lr) ** (1 / self.trainer.max_epochs)
+        # lr_scheduler = ExponentialLR(optimizer, gamma=gamma)
         return {
             'optimizer': optimizer,
             'lr_scheduler': lr_scheduler,
@@ -70,11 +71,11 @@ class MLP(L.LightningModule):
     def training_step(self, batch, batch_idx):
         # training_step defines the train loop.
         x, y = batch
-        y_hat = self.model(x)
-        loss = F.mse_loss(y_hat, y)
+        y_pred = self.model(x)
+        loss = F.mse_loss(y_pred, y)
 
         # Log the metrics
-        metric_values = self.train_metrics(y_hat, y)
+        metric_values = self.train_metrics(y_pred, y)
         self.log_dict(metric_values, on_epoch=True)
 
         return loss
@@ -94,6 +95,10 @@ class MLP(L.LightningModule):
         x, y = batch
         y_pred = self.model(x)
         loss = F.mse_loss(y_pred, y)
-        self.log('test_loss', loss)
+
+        # Log the metrics
+        metric_values = self.test_metrics(y_pred, y)
+        self.log_dict(metric_values, on_epoch=True)
+
         return loss
 

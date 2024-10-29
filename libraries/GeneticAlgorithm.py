@@ -46,11 +46,15 @@ class GeneticAlgorithm:
             progress_bar.set_description(f'Generation: {generation}')
 
             # Create loggers
+            print(len(population))
             loggers = [
                 Logger(
                     project="GMOOP",
                     name=f"fitness-{generation+1}-{i+1}",
-                    tags=run_tags
+                    tags=run_tags,
+                    config={
+                        'activation_function': population[i].to_dict()['activation'],
+                    },
                 ) for i in range(population_size)
             ]
 

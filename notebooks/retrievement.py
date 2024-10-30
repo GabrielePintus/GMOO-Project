@@ -22,12 +22,12 @@ class Filter:
     }
     MLP_MNIST_GA = {
         "tags": {
-            "$all": ["MNIST", "GA", "plateau", "MLP"],
+            "$all": ["mnist", "GA", "plateau", "MLP"],
         }
     }
     MLP_MNIST_BO = {
         "tags": {
-            "$all": ["MNIST", "BO", "plateau", "MLP"],
+            "$all": ["mnist", "BO", "plateau", "MLP"],
         }
     }
 

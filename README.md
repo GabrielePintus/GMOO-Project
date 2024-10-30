@@ -88,7 +88,9 @@ Example: probability of mutation from ReLU to every other activation function
 | Sigmoid              | 7.1                   | 14.3                       |
 | Tanh                 | 7.1                   | 14.3                       |
 
-By adjusting the base of the logarithm we can control the exploration-exploitation trade-off. The higher the base, the more exploration we have. Notice that this value must be greater than 1, otherwise the distance is always 0. The extreme cases are:
+By adjusting the base of the logarithm we can control the exploration-exploitation trade-off. The higher the base, the more exploration we have.
+ <!-- Notice that this value must be greater than 1, otherwise the distance is always 0. 
+The extreme cases are:
 
 ```math
 \begin{align*}
@@ -101,4 +103,4 @@ By adjusting the base of the logarithm we can control the exploration-exploitati
 \lim_{b \to \infty} p_b(a,b) &= \frac{1}{\text{\# Activation Functions}} \quad \forall a, b
 
 \end{align*}
-```
+``` -->

@@ -1,4 +1,6 @@
-# GMOO-Project
+# GAHT
+
+Genetic Algorithm for Hyperparameters Tuning
 
 This is the repository for the project of Global and Multi Objective Optimization course at the University of Trieste. 
 

@@ -3,7 +3,7 @@ python3 script-BO.py \
     --dataset datasets/MNIST \
     --warmup_steps 10 \
     --optimization_steps 90 \
-    --batch_size 4096 \
+    --batch_size 64 \
     --n_epochs 100 \
-    --tags mnist BO plateau MLP
+    --tags mnist BO MLP NEW
 

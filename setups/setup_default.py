@@ -120,15 +120,15 @@ def evaluate_individual(
     device_monitor = DeviceStatsMonitor()
     lr_monitor = LearningRateMonitor(logging_interval='epoch')
     model_checkpoint = ModelCheckpoint(
-        monitor='val_mse',
+        monitor='val/mse',
         mode='min',
         save_top_k=1,
         dirpath='checkpoints/',
-        filename='best-model-{epoch:02d}-{val_mse:.2f}',
+        filename='best-model-{epoch:02d}-{val/mse:.2f}',
         verbose=True,
     )
     early_stopping = EarlyStopping(
-        monitor='val_mse',
+        monitor='val/mse',
         mode='min',
         patience=10,
         verbose=True,

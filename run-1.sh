@@ -3,7 +3,7 @@ python3 script.py \
     --dataset datasets/sinewave.parquet \
     --pop_size 5 \
     --max_generations 20 \
-    --batch_size 128 \
+    --batch_size 64 \
     --n_epochs 100 \
-    --tags sinewave GA plateau MLP
+    --tags sinewave GA MLP NEW
 

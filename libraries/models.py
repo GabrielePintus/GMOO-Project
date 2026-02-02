@@ -4,7 +4,7 @@ from torch import nn
 import torchmetrics
 import lightning as L
 from libraries.Types import Chromosome
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau, ExponentialLR
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.functional import F
 import numpy as np
 
@@ -21,24 +21,30 @@ class MLP(L.LightningModule):
         output_size,
         n_layers,
         activation,
-        dropout
+        dropout: float = 0.5,
     ):
         super().__init__()
-        
-        # Build the model
-        self.layers = [
+
+        use_dropout = dropout > 0.0
+        dropout_p = dropout
+        layers = [
             nn.Linear(input_size, hidden_size),
             activation,
-            nn.Dropout(dropout)
         ]
+
+        if use_dropout:
+            layers.append(nn.Dropout(dropout_p))
+
         for _ in range(n_layers - 1):
-            self.layers.extend([
+            layers.extend([
                 nn.Linear(hidden_size, hidden_size),
                 activation,
-                nn.Dropout(dropout)
             ])
-        self.layers.append(nn.Linear(hidden_size, output_size))
-        self.model = nn.Sequential(*self.layers)
+            if use_dropout:
+                layers.append(nn.Dropout(dropout_p))
+
+        layers.append(nn.Linear(hidden_size, output_size))
+        self.model = nn.Sequential(*layers)
 
         # Metrics
         self.metrics = {
@@ -46,22 +52,24 @@ class MLP(L.LightningModule):
             'mae': torchmetrics.MeanAbsoluteError(),
             'R2': torchmetrics.R2Score(),
         }
-        self.train_metrics = torchmetrics.MetricCollection(self.metrics, prefix='train_')
-        self.val_metrics = torchmetrics.MetricCollection(self.metrics, prefix='val_')
-        self.test_metrics = torchmetrics.MetricCollection(self.metrics, prefix='test_')
-        # Save the hyperparameters
+        self.train_metrics = torchmetrics.MetricCollection(self.metrics, prefix='train/')
+        self.val_metrics = torchmetrics.MetricCollection(self.metrics, prefix='val/')
+        self.test_metrics = torchmetrics.MetricCollection(self.metrics, prefix='test/')
+
         self.save_hyperparameters()
 
     def forward(self, x):
         return self.model(x)
     
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=1e-2)
-        lr_scheduler = ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.1)
-        # initial_lr = 1e-2
-        # final_lr = 1e-4
-        # gamma = (final_lr / initial_lr) ** (1 / self.trainer.max_epochs)
-        # lr_scheduler = ExponentialLR(optimizer, gamma=gamma)
+        initial_lr = 1e-2
+        final_lr = 1e-5
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=initial_lr)
+        lr_scheduler = CosineAnnealingLR(
+            optimizer,
+            T_max=self.trainer.max_epochs,
+            eta_min=final_lr,
+        )
         return {
             'optimizer': optimizer,
             'lr_scheduler': lr_scheduler,
